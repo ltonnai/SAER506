@@ -5,9 +5,13 @@
 #ifndef SAER506_GROUND_H
 #define SAER506_GROUND_H
 
+#pragma once
 
 class Ground {
+public:
+    Ground();
+    void draw();
 };
 
 
-#endif //SAER506_GROUND_H
+#endif
