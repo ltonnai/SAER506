@@ -9,7 +9,10 @@ set(VCPKG_TARGET_TRIPLET "x64-windows")
 include_directories("C:/vcpkg/installed/x64-windows/include")
 link_directories("C:/vcpkg/installed/x64-windows/lib")
 
-add_executable(SAER506 src/main.cpp)
+add_executable(SAER506 src/main.cpp
+        src/rendering/Ground.cpp
+        src/rendering/Ground.h
+)
 
 target_link_libraries(SAER506
         opengl32
