@@ -23,7 +23,7 @@ void timer(int value) {
     lastTime = currentTime;
     
     creature.update(deltaTime);
-    creature.setRotation(creature.getRotation() + deltaTime * 30.0f);
+    creature.setRotation(creature.getRotation() + deltaTime * 10.0f);
     
     glutPostRedisplay();
     glutTimerFunc(16, timer, 0);

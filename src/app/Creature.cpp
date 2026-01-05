@@ -10,9 +10,9 @@ Creature::Creature()
     : rotation_(0.0f), animationPhase_(0.0f), legSwing_(20.0f) {}
 
 void Creature::drawBody() {
-    glColor3f(0.8f, 0.6f, 0.2f);
+    glColor3f(0.1f, 0.1f, 0.1f);
     glPushMatrix();
-    glScalef(2.0f, 0.6f, 1.2f);
+    glScalef(2.2f, 0.7f, 1.2f);
     glutSolidCube(1.0f);
     glPopMatrix();
 }
@@ -21,18 +21,18 @@ void Creature::drawLeg(float swingDirection) {
     float angleHip = sinf(animationPhase_) * legSwing_ * swingDirection;
     float angleKnee = 20.0f + sinf(animationPhase_ + 0.5f) * 10.0f;
 
-    glRotatef(angleHip, 1, 0, 0);
-    glColor3f(0.7f, 0.2f, 0.2f);
+    glRotatef(angleHip, 0, 0, 1);
+    glColor3f(0.1f, 0.1f, 0.1f);
     glPushMatrix();
     glScalef(0.3f, 1.2f, 0.3f);
     glutSolidCube(1.0f);
     glPopMatrix();
 
     glTranslatef(0, -0.6f, 0);
-    glRotatef(-angleKnee, 1, 0, 0);
+    glRotatef(-angleKnee, 0, 0, 1);
     glTranslatef(0, -0.6f, 0);
 
-    glColor3f(0.2f, 0.2f, 0.7f);
+    glColor3f(0.1f, 0.1f, 0.1f);
     glPushMatrix();
     glScalef(0.25f, 1.0f, 0.25f);
     glutSolidCube(1.0f);
