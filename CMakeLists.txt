@@ -11,9 +11,8 @@ link_directories("C:/vcpkg/installed/x64-windows/lib")
 
 add_executable(SAER506 src/main.cpp
         src/rendering/Ground.cpp
-        src/rendering/Ground.h
-        src/rendering/Renderer.cpp
-        src/rendering/Renderer.h
+        include/Creature.h
+        src/app/Creature.cpp
 )
 
 target_link_libraries(SAER506
