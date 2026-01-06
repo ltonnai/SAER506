@@ -1,7 +1,9 @@
 #include "../include/Creature.h"
+#include "../include/Ground.h"
 #include <GL/glut.h>
 
 Creature creature;
+Ground ground(50.0f, 50.0f); // instance du sol
 int lastTime = 0;
 
 void display() {
@@ -12,6 +14,9 @@ void display() {
               0, 0, 0,   // Regarde vers
               0, 1, 0);  // Haut
     
+    // Dessiner le sol avant la créature (il est à y=0)
+    ground.draw();
+
     creature.draw();
     
     glutSwapBuffers();
@@ -48,6 +53,7 @@ void reshape(int w, int h) {
 }
 
 int main(int argc, char** argv) {
+
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(800, 600);
