@@ -1,12 +1,15 @@
 #include <GL/glut.h>
 #include "../include/Leopard.h"
 #include "../include/Ground.h"
+#include "../include/Camera.h"
 
 // Global variables
 Leopard* g_leopard = nullptr;
 Ground* g_ground = nullptr;
+Camera* g_camera = nullptr;
 int g_lastTime = 0;
 bool g_keys[256] = {false};
+bool g_specialKeys[256] = {false};  // Pour les touches spéciales (flèches)
 
 // ============ OpenGL Functions ============
 void renderText(float x, float y, const char* text) {
@@ -20,16 +23,8 @@ void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
-    // Camera follows leopard
-    float camX = g_leopard->position.x;
-    float camY = g_leopard->position.y + 3.5f;
-    float camZ = g_leopard->position.z - 6.0f;
-
-    gluLookAt(
-        camX, camY, camZ,
-        g_leopard->position.x, g_leopard->position.y + 0.5f, g_leopard->position.z,
-        0, 1, 0
-    );
+    // Appliquer la caméra qui suit le léopard
+    g_camera->apply(g_leopard->position);
 
     g_ground->draw();
     g_leopard->draw();
@@ -45,7 +40,7 @@ void display() {
 
     glDisable(GL_DEPTH_TEST);
     glColor3f(1, 1, 1);
-    renderText(10, 30, "Z/S: Avancer/Reculer | Q/D: Rotation | ESC: Quitter");
+    renderText(10, 30, "Z/S: Avancer/Reculer | Q/D: Rotation | Fleches: Camera | ESC: Quitter");
     glEnable(GL_DEPTH_TEST);
 
     glPopMatrix();
@@ -64,6 +59,7 @@ void timer(int value) {
     if (deltaTime > 0.016f) deltaTime = 0.016f;  // Cap deltaTime
 
     g_leopard->update(deltaTime, g_ground);
+    g_camera->update(deltaTime);
     glutPostRedisplay();
     glutTimerFunc(16, timer, 0);
 }
@@ -83,6 +79,14 @@ void keyboard(unsigned char key, int x, int y) {
 
 void keyboardUp(unsigned char key, int x, int y) {
     g_keys[key] = false;
+}
+
+void specialKeyboard(int key, int x, int y) {
+    g_specialKeys[key] = true;
+}
+
+void specialKeyboardUp(int key, int x, int y) {
+    g_specialKeys[key] = false;
 }
 
 void initGL() {
@@ -113,13 +117,17 @@ int main(int argc, char** argv) {
 
     g_leopard = new Leopard();
     g_ground = new Ground();
+    g_camera = new Camera(10.0f);
 
     g_leopard->setKeyState(g_keys);
+    g_camera->setKeyState(g_specialKeys);
 
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
     glutKeyboardUpFunc(keyboardUp);
+    glutSpecialFunc(specialKeyboard);
+    glutSpecialUpFunc(specialKeyboardUp);
 
     g_lastTime = glutGet(GLUT_ELAPSED_TIME);
     glutTimerFunc(16, timer, 0);

@@ -14,9 +14,12 @@ add_executable(SAER506
         src/app/Leopard.cpp
         src/app/Terrain.cpp
         src/rendering/Ground.cpp
+        src/rendering/Camera.cpp
         include/Leopard.h
         include/Terrain.h
         include/Vec3.h
+        include/Ground.h
+        include/Camera.h
 )
 
 target_include_directories(SAER506 PRIVATE ${CMAKE_SOURCE_DIR}/include)
