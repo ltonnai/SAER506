@@ -7,7 +7,9 @@
 #include <GL/glut.h>
 #include <cmath>
 
-Leopard::Leopard() 
+static float g_headLookYaw = 0.0f;
+
+Leopard::Leopard()
     : position(0, 0, 0), rotation(0), animationPhase(0), moveSpeed(5.0f),
       legSwing(20.0f), keyState(nullptr) {}
 
@@ -37,7 +39,14 @@ void Leopard::update(float deltaTime, const Terrain* terrain) {
     if (keyState['d'] || keyState['D']) {
         rotation -= 150.0f * deltaTime;
     }
-    
+
+    // Orientation de la tête vers la direction de rotation (plus marqué en virage)
+    float targetHeadYaw = 0.0f;
+    if (keyState['a'] || keyState['A']) targetHeadYaw = 22.0f;
+    else if (keyState['d'] || keyState['D']) targetHeadYaw = -22.0f;
+    float blend = fminf(1.0f, deltaTime * 8.0f);
+    g_headLookYaw += (targetHeadYaw - g_headLookYaw) * blend;
+
     // Normalize and apply movement
     float len = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
     if (len > 0.1f) {
@@ -70,37 +79,39 @@ void Leopard::drawBody() {
     // Corps du léopard - couleur jaune/orange tachetée
     glColor3f(0.9f, 0.7f, 0.4f);
     glPushMatrix();
-    glScalef(2.2f, 0.7f, 1.2f);
+    glScalef(2.27f, 0.65f, 1.31f);
     glutSolidCube(1.0f);
     glPopMatrix();
-    
-    // Tête
-    glColor3f(0.95f, 0.75f, 0.45f);
+
+    // Tête (tourne dans la direction de déplacement/rotation)
     glPushMatrix();
     glTranslatef(1.3f, 0.2f, 0);
+    glRotatef(g_headLookYaw, 0, 1, 0);
+    glColor3f(0.95f, 0.75f, 0.45f);
     glutSolidSphere(0.4f, 16, 16);
-    glPopMatrix();
-    
-    // Oreilles
+
+    // Oreilles (positions relatives)
     glColor3f(0.85f, 0.65f, 0.35f);
     glPushMatrix();
-    glTranslatef(1.4f, 0.55f, -0.25f);
+    glTranslatef(0.1f, 0.35f, -0.25f);
     glScalef(0.15f, 0.25f, 0.15f);
     glutSolidCube(1.0f);
     glPopMatrix();
-    
+
     glPushMatrix();
-    glTranslatef(1.4f, 0.55f, 0.25f);
+    glTranslatef(0.1f, 0.35f, 0.25f);
     glScalef(0.15f, 0.25f, 0.15f);
     glutSolidCube(1.0f);
     glPopMatrix();
-    
+
+    glPopMatrix(); // fin tête (rotation)
+
     // Queue
     glColor3f(0.85f, 0.65f, 0.35f);
     glPushMatrix();
     glTranslatef(-1.3f, 0.1f, 0);
-    glRotatef(sinf(animationPhase) * 15.0f, 0, 0, 1);
-    glScalef(0.8f, 0.15f, 0.15f);
+    glRotatef(sinf(animationPhase) * 10.0f, 0, 1, 0);
+    glScalef(1.3f, 0.15f, 0.15f);
     glutSolidCube(1.0f);
     glPopMatrix();
 }
@@ -149,15 +160,15 @@ void Leopard::draw() {
     drawLeg(-1.0f);
     glPopMatrix();
 
-    // Patte arrière droite
     glPushMatrix();
     glTranslatef(-0.8f, -0.3f, 0.5f);
+    glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
     drawLeg(-1.0f);
     glPopMatrix();
 
-    // Patte arrière gauche
     glPushMatrix();
     glTranslatef(-0.8f, -0.3f, -0.5f);
+    glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
     drawLeg(1.0f);
     glPopMatrix();
 
