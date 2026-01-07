@@ -4,10 +4,21 @@
 
 Camera::Camera(float dist)
     : distance(dist), angleH(0.0f), angleV(30.0f),
-      rotationSpeed(100.0f), keyState(nullptr) {}
+      rotationSpeed(100.0f), minDistance(3.0f), maxDistance(30.0f),
+      zoomSpeed(1.5f), keyState(nullptr) {}
 
 void Camera::setKeyState(bool keys[256]) {
     keyState = keys;
+}
+
+void Camera::zoomIn() {
+    distance -= zoomSpeed;
+    if (distance < minDistance) distance = minDistance;
+}
+
+void Camera::zoomOut() {
+    distance += zoomSpeed;
+    if (distance > maxDistance) distance = maxDistance;
 }
 
 void Camera::update(float deltaTime) {

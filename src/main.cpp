@@ -40,7 +40,7 @@ void display() {
 
     glDisable(GL_DEPTH_TEST);
     glColor3f(1, 1, 1);
-    renderText(10, 30, "Z/S: Avancer/Reculer | Q/D: Rotation | Fleches: Camera | ESC: Quitter");
+    renderText(10, 30, "Z/S: Avancer/Reculer | Q/D: Rotation | Fleches: Camera | Molette: Zoom");
     glEnable(GL_DEPTH_TEST);
 
     glPopMatrix();
@@ -89,6 +89,17 @@ void specialKeyboardUp(int key, int x, int y) {
     g_specialKeys[key] = false;
 }
 
+void mouseWheel(int button, int state, int x, int y) {
+    // Molette souris : button 3 = scroll up (zoom in), button 4 = scroll down (zoom out)
+    if (button == 3 && state == GLUT_DOWN) {
+        g_camera->zoomIn();
+    }
+    if (button == 4 && state == GLUT_DOWN) {
+        g_camera->zoomOut();
+    }
+    glutPostRedisplay();
+}
+
 void initGL() {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING);
@@ -128,6 +139,7 @@ int main(int argc, char** argv) {
     glutKeyboardUpFunc(keyboardUp);
     glutSpecialFunc(specialKeyboard);
     glutSpecialUpFunc(specialKeyboardUp);
+    glutMouseFunc(mouseWheel);  // Molette souris pour le zoom
 
     g_lastTime = glutGet(GLUT_ELAPSED_TIME);
     glutTimerFunc(16, timer, 0);
