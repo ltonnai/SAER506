@@ -19,6 +19,9 @@ public:
     float sitProgress;      // 0.0 = debout, 1.0 = assis
     float idleTimer;        // Temps d'immobilité avant de s'asseoir
 
+    // Rotation de la tête
+    float headRotation;     // Angle de rotation de la tête (gauche/droite)
+
     Leopard();
 
     void update(float deltaTime, const Ground* ground);

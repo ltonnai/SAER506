@@ -10,7 +10,7 @@
 Leopard::Leopard() 
     : position(0, 0, 0), rotation(0), animationPhase(0), moveSpeed(5.0f),
       legSwing(20.0f), collisionRadius(1.2f), isSitting(false), sitProgress(0.0f),
-      idleTimer(0.0f), keyState(nullptr), isMoving(false) {}
+      idleTimer(0.0f), keyState(nullptr), isMoving(false), headRotation(0.0f) {}
 
 void Leopard::setKeyState(bool keys[256]) {
     keyState = keys;
@@ -24,13 +24,27 @@ void Leopard::update(float deltaTime, const Ground* ground) {
 
     // Keyboard controls - Rotation (Q et D)
     float newRotation = rotation;
+    float targetHeadRotation = 0.0f;  // Angle cible pour la tête
+
     if (keyState['q'] || keyState['Q']) {
         newRotation += 150.0f * deltaTime;
         isMoving = true;
+        targetHeadRotation = 25.0f;  // Tourner la tête vers la gauche
     }
     if (keyState['d'] || keyState['D']) {
         newRotation -= 150.0f * deltaTime;
         isMoving = true;
+        targetHeadRotation = -25.0f;  // Tourner la tête vers la droite
+    }
+
+    // rotation de la tête
+    float headRotationSpeed = 200.0f * deltaTime;
+    if (headRotation < targetHeadRotation) {
+        headRotation += headRotationSpeed;
+        if (headRotation > targetHeadRotation) headRotation = targetHeadRotation;
+    } else if (headRotation > targetHeadRotation) {
+        headRotation -= headRotationSpeed;
+        if (headRotation < targetHeadRotation) headRotation = targetHeadRotation;
     }
 
     // Vérifier si la rotation cause une collision
@@ -147,25 +161,32 @@ void Leopard::drawBody() {
     glutSolidCube(1.0f);
     glPopMatrix();
     
-    // Tête - se lève quand assis
+    // Tête - se lève quand assis et tourne pendant les virages
     glColor3f(0.95f, 0.75f, 0.45f);
     glPushMatrix();
     float headLift = sitProgress * 0.2f;
     glTranslatef(1.3f, 0.2f + headLift, 0);
-    glRotatef(-bodyTilt, 0, 0, 1);
+    glRotatef(-bodyTilt, 0, 0, 1);  // Compenser l'inclinaison du corps
+    glRotatef(headRotation, 0, 1, 0);  // Rotation de la tête gauche/droite
     glutSolidSphere(0.4f, 16, 16);
     glPopMatrix();
     
-    // Oreilles
+    // Oreilles - suivent la rotation de la tête
     glColor3f(0.85f, 0.65f, 0.35f);
     glPushMatrix();
-    glTranslatef(1.4f, 0.55f + headLift, -0.25f);
+    glTranslatef(1.3f, 0.2f + headLift, 0);  // Position du centre de la tête
+    glRotatef(-bodyTilt, 0, 0, 1);  // Compenser l'inclinaison du corps
+    glRotatef(headRotation, 0, 1, 0);  // Rotation avec la tête
+    glTranslatef(0.1f, 0.35f, -0.25f);  // Offset par rapport au centre de la tête
     glScalef(0.15f, 0.25f, 0.15f);
     glutSolidCube(1.0f);
     glPopMatrix();
     
     glPushMatrix();
-    glTranslatef(1.4f, 0.55f + headLift, 0.25f);
+    glTranslatef(1.3f, 0.2f + headLift, 0);  // Position du centre de la tête
+    glRotatef(-bodyTilt, 0, 0, 1);  // Compenser l'inclinaison du corps
+    glRotatef(headRotation, 0, 1, 0);  // Rotation avec la tête
+    glTranslatef(0.1f, 0.35f, 0.25f);  // Offset par rapport au centre de la tête
     glScalef(0.15f, 0.25f, 0.15f);
     glutSolidCube(1.0f);
     glPopMatrix();
