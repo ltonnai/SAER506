@@ -3,70 +3,144 @@
 //
 
 #include "../../include/Leopard.h"
-#include "../../include/Terrain.h"
+#include "../../include/Ground.h"
 #include <GL/glut.h>
 #include <cmath>
 
 Leopard::Leopard() 
     : position(0, 0, 0), rotation(0), animationPhase(0), moveSpeed(5.0f),
-      legSwing(20.0f), keyState(nullptr) {}
+      legSwing(20.0f), collisionRadius(1.2f), isSitting(false), sitProgress(0.0f),
+      idleTimer(0.0f), keyState(nullptr), isMoving(false) {}
 
 void Leopard::setKeyState(bool keys[256]) {
     keyState = keys;
 }
 
-void Leopard::update(float deltaTime, const Terrain* terrain) {
+void Leopard::update(float deltaTime, const Ground* ground) {
     if (keyState == nullptr) return;
     
-    animationPhase += deltaTime * 5.0f;
+    // Déterminer si le léopard bouge
+    isMoving = false;
+
+    // Keyboard controls - Rotation
+    float newRotation = rotation;
+    if (keyState['a'] || keyState['A']) {
+        newRotation += 150.0f * deltaTime;
+        isMoving = true;
+    }
+    if (keyState['d'] || keyState['D']) {
+        newRotation -= 150.0f * deltaTime;
+        isMoving = true;
+    }
+
+    // Vérifier si la rotation cause une collision
+    if (ground != nullptr && newRotation != rotation) {
+        float newRotRad = newRotation * 3.14159f / 180.0f;
+
+        bool rotationBlocked = false;
+
+        float frontX = position.x + cosf(newRotRad) * 1.5f;
+        float frontZ = position.z + sinf(newRotRad) * 1.5f;
+        float backX = position.x - cosf(newRotRad) * 1.5f;
+        float backZ = position.z - sinf(newRotRad) * 1.5f;
+
+        if (ground->checkCollision(frontX, frontZ, 0.5f) ||
+            ground->checkCollision(backX, backZ, 0.5f) ||
+            ground->checkCollision(position.x, position.z, collisionRadius)) {
+            rotationBlocked = true;
+        }
+
+        if (!rotationBlocked) {
+            rotation = newRotation;
+        }
+    } else {
+        rotation = newRotation;
+    }
 
     Vec3 moveDir(0, 0, 0);
-    
-    // Keyboard controls
+
+    // Movement direction based on current rotation
     if (keyState['w'] || keyState['W']) {
         moveDir.x += cosf(rotation * 3.14159f / 180.0f);
         moveDir.z += sinf(rotation * 3.14159f / 180.0f);
+        isMoving = true;
     }
     if (keyState['s'] || keyState['S']) {
         moveDir.x -= cosf(rotation * 3.14159f / 180.0f);
         moveDir.z -= sinf(rotation * 3.14159f / 180.0f);
+        isMoving = true;
     }
-    if (keyState['a'] || keyState['A']) {
-        rotation += 150.0f * deltaTime;
-    }
-    if (keyState['d'] || keyState['D']) {
-        rotation -= 150.0f * deltaTime;
-    }
-    
+
     // Normalize and apply movement
     float len = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
     if (len > 0.1f) {
         moveDir.x /= len;
         moveDir.z /= len;
 
-        // Calculate new position
         float newX = position.x + moveDir.x * moveSpeed * deltaTime;
         float newZ = position.z + moveDir.z * moveSpeed * deltaTime;
 
-        // Vérifier les limites du terrain avant d'appliquer le mouvement
-        if (terrain != nullptr && terrain->isInBounds(newX, newZ)) {
-            position.x = newX;
-            position.z = newZ;
+        if (ground != nullptr) {
+            bool inBounds = ground->isInBounds(newX, newZ);
+            bool collision = ground->checkCollision(newX, newZ, collisionRadius);
+
+            if (inBounds && !collision) {
+                position.x = newX;
+                position.z = newZ;
+            } else {
+                bool xInBounds = ground->isInBounds(newX, position.z);
+                bool xCollision = ground->checkCollision(newX, position.z, collisionRadius);
+                if (xInBounds && !xCollision) {
+                    position.x = newX;
+                }
+
+                bool zInBounds = ground->isInBounds(position.x, newZ);
+                bool zCollision = ground->checkCollision(position.x, newZ, collisionRadius);
+                if (zInBounds && !zCollision) {
+                    position.z = newZ;
+                }
+            }
         } else {
-            // Fallback: utiliser les anciennes limites si pas de terrain
             float halfSize = 24.5f;
             if (newX >= -halfSize && newX <= halfSize) position.x = newX;
             if (newZ >= -halfSize && newZ <= halfSize) position.z = newZ;
         }
     }
-    
-    // Ajuster la position Y pour suivre le terrain
-    if (terrain != nullptr) {
-        position.y = terrain->getHeightAt(position.x, position.z);
+
+    // Gestion de l'animation de marche et de l'état assis
+    if (isMoving) {
+        // Le léopard bouge - animer les pattes et se lever
+        animationPhase += deltaTime * 5.0f;
+        idleTimer = 0.0f;
+        isSitting = false;
+
+        // Se relever progressivement
+        if (sitProgress > 0.0f) {
+            sitProgress -= deltaTime * 3.0f;  // Se relève rapidement
+            if (sitProgress < 0.0f) sitProgress = 0.0f;
+        }
+    } else {
+        // Le léopard est immobile
+        idleTimer += deltaTime;
+
+        // Après 1.5 secondes d'immobilité, commencer à s'asseoir
+        if (idleTimer > 1.5f) {
+            isSitting = true;
+            if (sitProgress < 1.0f) {
+                sitProgress += deltaTime * 2.0f;  // S'assoit progressivement
+                if (sitProgress > 1.0f) sitProgress = 1.0f;
+            }
+        }
     }
 }
 
 void Leopard::drawBody() {
+    // Inclinaison du corps quand assis (arrière vers le bas)
+    float bodyTilt = sitProgress * 15.0f;  // Incline l'arrière vers le bas
+
+    glPushMatrix();
+    glRotatef(bodyTilt, 0, 0, 1);  // Rotation autour de l'axe Z
+
     // Corps du léopard - couleur jaune/orange tachetée
     glColor3f(0.9f, 0.7f, 0.4f);
     glPushMatrix();
@@ -74,35 +148,85 @@ void Leopard::drawBody() {
     glutSolidCube(1.0f);
     glPopMatrix();
     
-    // Tête
+    // Tête - se lève quand assis
     glColor3f(0.95f, 0.75f, 0.45f);
     glPushMatrix();
-    glTranslatef(1.3f, 0.2f, 0);
+    float headLift = sitProgress * 0.2f;
+    glTranslatef(1.3f, 0.2f + headLift, 0);
+    glRotatef(-bodyTilt, 0, 0, 1);  // Contre-rotation pour garder la tête droite
     glutSolidSphere(0.4f, 16, 16);
     glPopMatrix();
     
     // Oreilles
     glColor3f(0.85f, 0.65f, 0.35f);
     glPushMatrix();
-    glTranslatef(1.4f, 0.55f, -0.25f);
+    glTranslatef(1.4f, 0.55f + headLift, -0.25f);
     glScalef(0.15f, 0.25f, 0.15f);
     glutSolidCube(1.0f);
     glPopMatrix();
     
     glPushMatrix();
-    glTranslatef(1.4f, 0.55f, 0.25f);
+    glTranslatef(1.4f, 0.55f + headLift, 0.25f);
     glScalef(0.15f, 0.25f, 0.15f);
     glutSolidCube(1.0f);
     glPopMatrix();
     
-    // Queue
+    // Queue - s'enroule quand assis
     glColor3f(0.85f, 0.65f, 0.35f);
     glPushMatrix();
-    glTranslatef(-1.3f, 0.1f, 0);
-    glRotatef(sinf(animationPhase) * 15.0f, 0, 0, 1);
+    glTranslatef(-1.3f, 0.1f - sitProgress * 0.3f, 0);
+    float tailSwing = isSitting ? sinf(animationPhase * 0.5f) * 5.0f : sinf(animationPhase) * 15.0f;
+    glRotatef(tailSwing + sitProgress * 30.0f, 0, 1, 0);  // S'enroule sur le côté
+    glRotatef(-sitProgress * 20.0f, 0, 0, 1);  // S'abaisse
     glScalef(0.8f, 0.15f, 0.15f);
     glutSolidCube(1.0f);
     glPopMatrix();
+
+    glPopMatrix();
+}
+
+void Leopard::drawSittingLeg(float swingDirection, bool isFrontLeg) {
+    if (isFrontLeg) {
+        // Pattes avant - restent droites et tendues
+        float angleHip = -10.0f * sitProgress;  // Légèrement en avant
+
+        glRotatef(angleHip, 0, 0, 1);
+        glColor3f(0.9f, 0.7f, 0.4f);
+        glPushMatrix();
+        glScalef(0.3f, 1.2f, 0.3f);
+        glutSolidCube(1.0f);
+        glPopMatrix();
+
+        glTranslatef(0, -0.6f, 0);
+        glRotatef(-5.0f, 0, 0, 1);  // Genou légèrement plié
+        glTranslatef(0, -0.6f, 0);
+
+        glColor3f(0.8f, 0.6f, 0.3f);
+        glPushMatrix();
+        glScalef(0.25f, 1.0f, 0.25f);
+        glutSolidCube(1.0f);
+        glPopMatrix();
+    } else {
+        // Pattes arrière - repliées sous le corps
+        float foldAngle = sitProgress * 70.0f;  // Angle de repliement
+
+        glRotatef(foldAngle, 0, 0, 1);  // Cuisse vers l'arrière/haut
+        glColor3f(0.9f, 0.7f, 0.4f);
+        glPushMatrix();
+        glScalef(0.3f, 1.2f, 0.3f);
+        glutSolidCube(1.0f);
+        glPopMatrix();
+
+        glTranslatef(0, -0.6f, 0);
+        glRotatef(-90.0f * sitProgress - 20.0f, 0, 0, 1);  // Genou très plié
+        glTranslatef(0, -0.6f, 0);
+
+        glColor3f(0.8f, 0.6f, 0.3f);
+        glPushMatrix();
+        glScalef(0.25f, 1.0f, 0.25f);
+        glutSolidCube(1.0f);
+        glPopMatrix();
+    }
 }
 
 void Leopard::drawLeg(float swingDirection) {
@@ -133,33 +257,64 @@ void Leopard::draw() {
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
     glRotatef(rotation, 0, 1, 0);
-    glTranslatef(0, 0.8f, 0);
+
+    // Ajuster la hauteur quand assis (le léopard s'abaisse)
+    float sitHeight = 0.8f - sitProgress * 0.35f;
+    glTranslatef(0, sitHeight, 0);
 
     drawBody();
 
-    // Patte avant droite
-    glPushMatrix();
-    glTranslatef(0.8f, -0.3f, 0.5f);
-    drawLeg(1.0f);
-    glPopMatrix();
+    if (sitProgress > 0.01f) {
+        // Utiliser les pattes en position assise
+        // Patte avant droite
+        glPushMatrix();
+        glTranslatef(0.8f, -0.3f + sitProgress * 0.1f, 0.5f);
+        drawSittingLeg(1.0f, true);
+        glPopMatrix();
 
-    // Patte avant gauche
-    glPushMatrix();
-    glTranslatef(0.8f, -0.3f, -0.5f);
-    drawLeg(-1.0f);
-    glPopMatrix();
+        // Patte avant gauche
+        glPushMatrix();
+        glTranslatef(0.8f, -0.3f + sitProgress * 0.1f, -0.5f);
+        drawSittingLeg(-1.0f, true);
+        glPopMatrix();
 
-    // Patte arrière droite
-    glPushMatrix();
-    glTranslatef(-0.8f, -0.3f, 0.5f);
-    drawLeg(-1.0f);
-    glPopMatrix();
+        // Patte arrière droite
+        glPushMatrix();
+        glTranslatef(-0.8f, -0.3f + sitProgress * 0.2f, 0.5f);
+        drawSittingLeg(-1.0f, false);
+        glPopMatrix();
 
-    // Patte arrière gauche
-    glPushMatrix();
-    glTranslatef(-0.8f, -0.3f, -0.5f);
-    drawLeg(1.0f);
-    glPopMatrix();
+        // Patte arrière gauche
+        glPushMatrix();
+        glTranslatef(-0.8f, -0.3f + sitProgress * 0.2f, -0.5f);
+        drawSittingLeg(1.0f, false);
+        glPopMatrix();
+    } else {
+        // Pattes normales en mouvement
+        // Patte avant droite
+        glPushMatrix();
+        glTranslatef(0.8f, -0.3f, 0.5f);
+        drawLeg(1.0f);
+        glPopMatrix();
+
+        // Patte avant gauche
+        glPushMatrix();
+        glTranslatef(0.8f, -0.3f, -0.5f);
+        drawLeg(-1.0f);
+        glPopMatrix();
+
+        // Patte arrière droite
+        glPushMatrix();
+        glTranslatef(-0.8f, -0.3f, 0.5f);
+        drawLeg(-1.0f);
+        glPopMatrix();
+
+        // Patte arrière gauche
+        glPushMatrix();
+        glTranslatef(-0.8f, -0.3f, -0.5f);
+        drawLeg(1.0f);
+        glPopMatrix();
+    }
 
     glPopMatrix();
 }

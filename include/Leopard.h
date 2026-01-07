@@ -3,7 +3,7 @@
 
 #include "Vec3.h"
 
-class Terrain; // Forward declaration
+class Ground; // Forward declaration
 
 class Leopard {
 public:
@@ -12,19 +12,27 @@ public:
     float animationPhase;
     float moveSpeed;
     float legSwing;
+    float collisionRadius;  // Rayon de collision du léopard
+
+    // État assis
+    bool isSitting;
+    float sitProgress;      // 0.0 = debout, 1.0 = assis
+    float idleTimer;        // Temps d'immobilité avant de s'asseoir
 
     Leopard();
 
-    void update(float deltaTime, const Terrain* terrain);
+    void update(float deltaTime, const Ground* ground);
     void draw();
 
     void setKeyState(bool keys[256]);
 
 private:
     bool* keyState;
+    bool isMoving;          // Si le léopard bouge actuellement
 
     void drawBody();
     void drawLeg(float swingDirection);
+    void drawSittingLeg(float swingDirection, bool isFrontLeg);
 };
 
 #endif // LEOPARD_H

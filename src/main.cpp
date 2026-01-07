@@ -63,7 +63,7 @@ void timer(int value) {
 
     if (deltaTime > 0.016f) deltaTime = 0.016f;  // Cap deltaTime
 
-    g_leopard->update(deltaTime, nullptr);
+    g_leopard->update(deltaTime, g_ground);
     glutPostRedisplay();
     glutTimerFunc(16, timer, 0);
 }
