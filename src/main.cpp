@@ -45,7 +45,7 @@ void display() {
 
     glDisable(GL_DEPTH_TEST);
     glColor3f(1, 1, 1);
-    renderText(10, 30, "W/A/S/D: Move | ESC: Exit");
+    renderText(10, 30, "Z/S: Avancer/Reculer | Q/D: Rotation | ESC: Quitter");
     glEnable(GL_DEPTH_TEST);
 
     glPopMatrix();

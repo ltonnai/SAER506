@@ -22,9 +22,9 @@ void Leopard::update(float deltaTime, const Ground* ground) {
     // Déterminer si le léopard bouge
     isMoving = false;
 
-    // Keyboard controls - Rotation
+    // Keyboard controls - Rotation (Q et D)
     float newRotation = rotation;
-    if (keyState['a'] || keyState['A']) {
+    if (keyState['q'] || keyState['Q']) {
         newRotation += 150.0f * deltaTime;
         isMoving = true;
     }
@@ -38,10 +38,11 @@ void Leopard::update(float deltaTime, const Ground* ground) {
         float newRotRad = newRotation * 3.14159f / 180.0f;
         bool rotationBlocked = false;
 
+        // La tête est en X+ local, la queue en X- local
         float frontX = position.x + cosf(newRotRad) * 1.5f;
-        float frontZ = position.z + sinf(newRotRad) * 1.5f;
+        float frontZ = position.z - sinf(newRotRad) * 1.5f;
         float backX = position.x - cosf(newRotRad) * 1.5f;
-        float backZ = position.z - sinf(newRotRad) * 1.5f;
+        float backZ = position.z + sinf(newRotRad) * 1.5f;
 
         if (ground->checkCollision(frontX, frontZ, 0.5f) ||
             ground->checkCollision(backX, backZ, 0.5f) ||
@@ -58,15 +59,17 @@ void Leopard::update(float deltaTime, const Ground* ground) {
 
     Vec3 moveDir(0, 0, 0);
     
-    // Movement direction based on current rotation
-    if (keyState['w'] || keyState['W']) {
-        moveDir.x += cosf(rotation * 3.14159f / 180.0f);
-        moveDir.z += sinf(rotation * 3.14159f / 180.0f);
+    // Movement direction based on current rotation (Z et S)
+    // La tête du léopard est en X+ local, donc on utilise cos pour X et -sin pour Z
+    float radRotation = rotation * 3.14159f / 180.0f;
+    if (keyState['z'] || keyState['Z']) {
+        moveDir.x += cosf(radRotation);
+        moveDir.z -= sinf(radRotation);
         isMoving = true;
     }
     if (keyState['s'] || keyState['S']) {
-        moveDir.x -= cosf(rotation * 3.14159f / 180.0f);
-        moveDir.z -= sinf(rotation * 3.14159f / 180.0f);
+        moveDir.x -= cosf(radRotation);
+        moveDir.z += sinf(radRotation);
         isMoving = true;
     }
 
