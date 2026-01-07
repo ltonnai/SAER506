@@ -1,10 +1,10 @@
 #include <GL/glut.h>
 #include "../include/Leopard.h"
-#include "../include/Terrain.h"
+#include "../include/Ground.h"
 
 // Global variables
 Leopard* g_leopard = nullptr;
-Terrain* g_terrain = nullptr;
+Ground* g_ground = nullptr;
 int g_lastTime = 0;
 bool g_keys[256] = {false};
 
@@ -31,7 +31,7 @@ void display() {
         0, 1, 0
     );
 
-    g_terrain->draw();
+    g_ground->draw();
     g_leopard->draw();
 
     // Display controls
@@ -63,7 +63,7 @@ void timer(int value) {
 
     if (deltaTime > 0.016f) deltaTime = 0.016f;  // Cap deltaTime
 
-    g_leopard->update(deltaTime, g_terrain);
+    g_leopard->update(deltaTime, nullptr);
     glutPostRedisplay();
     glutTimerFunc(16, timer, 0);
 }
@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
     initGL();
 
     g_leopard = new Leopard();
-    g_terrain = new Terrain();
+    g_ground = new Ground();
 
     g_leopard->setKeyState(g_keys);
 
