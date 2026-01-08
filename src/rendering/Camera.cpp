@@ -24,8 +24,7 @@ void Camera::zoomOut() {
 void Camera::update(float deltaTime) {
     if (keyState == nullptr) return;
 
-    // Touches fléchées pour la rotation de la caméra
-    // GLUT_KEY_LEFT = 100, GLUT_KEY_UP = 101, GLUT_KEY_RIGHT = 102, GLUT_KEY_DOWN = 103
+    // Touches fleches pour la rotation de la caméra
     if (keyState[100]) { // Flèche gauche
         angleH += rotationSpeed * deltaTime;
     }
@@ -58,7 +57,7 @@ void Camera::apply(const Vec3& targetPosition) {
 
     // Appliquer la vue
     gluLookAt(camX, camY, camZ,                    // Position de la caméra
-              targetPosition.x, targetPosition.y + 0.5f, targetPosition.z,  // Point regardé (léopard)
-              0.0f, 1.0f, 0.0f);                   // Vecteur "haut"
+              targetPosition.x, targetPosition.y + 0.5f, targetPosition.z,
+              0.0f, 1.0f, 0.0f);
 }
 

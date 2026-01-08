@@ -11,7 +11,7 @@ private:
     float width;
     float depth;
 
-    static const int NUM_OBSTACLES = 3;
+    static const int NUM_OBSTACLES = 10;
     Obstacle obstacles[NUM_OBSTACLES];
 
 public:

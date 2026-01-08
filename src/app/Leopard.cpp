@@ -19,10 +19,10 @@ void Leopard::setKeyState(bool keys[256]) {
 void Leopard::update(float deltaTime, const Ground* ground) {
     if (keyState == nullptr) return;
     
-    // Déterminer si le léopard bouge
+    // Détermine si le léopard bouge
     isMoving = false;
 
-    // Keyboard controls - Rotation (Q et D)
+    // Rotation (Q et D)
     float newRotation = rotation;
     float targetHeadRotation = 0.0f;  // Angle cible pour la tête
 
@@ -37,7 +37,7 @@ void Leopard::update(float deltaTime, const Ground* ground) {
         targetHeadRotation = -25.0f;  // Tourner la tête vers la droite
     }
 
-    // rotation de la tête
+    // Rotation de la tête
     float headRotationSpeed = 200.0f * deltaTime;
     if (headRotation < targetHeadRotation) {
         headRotation += headRotationSpeed;
@@ -72,8 +72,7 @@ void Leopard::update(float deltaTime, const Ground* ground) {
     }
 
     Vec3 moveDir(0, 0, 0);
-    
-    // Movement direction based on current rotation (Z et S)
+
     // La tête du léopard est en X+ local, donc on utilise cos pour X et -sin pour Z
     float radRotation = rotation * 3.14159f / 180.0f;
     if (keyState['z'] || keyState['Z']) {
@@ -87,7 +86,6 @@ void Leopard::update(float deltaTime, const Ground* ground) {
         isMoving = true;
     }
 
-    // Normalize and apply movement
     float len = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
     if (len > 0.1f) {
         moveDir.x /= len;
@@ -154,44 +152,42 @@ void Leopard::drawBody() {
     glPushMatrix();
     glRotatef(bodyTilt, 0, 0, 1);
 
-    // Corps du léopard - couleur jaune/orange tachetée
+    // Corps du léopard
     glColor3f(0.9f, 0.7f, 0.4f);
     glPushMatrix();
     glScalef(2.2f, 0.7f, 1.2f);
     glutSolidCube(1.0f);
     glPopMatrix();
     
-    // Tête - se lève quand assis et tourne pendant les virages
+    // Tête
     glColor3f(0.95f, 0.75f, 0.45f);
     glPushMatrix();
     float headLift = sitProgress * 0.2f;
     glTranslatef(1.3f, 0.2f + headLift, 0);
-    glRotatef(-bodyTilt, 0, 0, 1);  // Compenser l'inclinaison du corps
     glRotatef(headRotation, 0, 1, 0);  // Rotation de la tête gauche/droite
     glutSolidSphere(0.4f, 16, 16);
     glPopMatrix();
     
-    // Oreilles - suivent la rotation de la tête
+    // Oreille
     glColor3f(0.85f, 0.65f, 0.35f);
     glPushMatrix();
     glTranslatef(1.3f, 0.2f + headLift, 0);  // Position du centre de la tête
-    glRotatef(-bodyTilt, 0, 0, 1);  // Compenser l'inclinaison du corps
     glRotatef(headRotation, 0, 1, 0);  // Rotation avec la tête
-    glTranslatef(0.1f, 0.35f, -0.25f);  // Offset par rapport au centre de la tête
+    glTranslatef(0.1f, 0.35f, -0.25f);
     glScalef(0.15f, 0.25f, 0.15f);
     glutSolidCube(1.0f);
     glPopMatrix();
-    
+
+    //2eme oreille
     glPushMatrix();
-    glTranslatef(1.3f, 0.2f + headLift, 0);  // Position du centre de la tête
-    glRotatef(-bodyTilt, 0, 0, 1);  // Compenser l'inclinaison du corps
-    glRotatef(headRotation, 0, 1, 0);  // Rotation avec la tête
-    glTranslatef(0.1f, 0.35f, 0.25f);  // Offset par rapport au centre de la tête
+    glTranslatef(1.3f, 0.2f + headLift, 0);
+    glRotatef(headRotation, 0, 1, 0);
+    glTranslatef(0.1f, 0.35f, 0.25f);
     glScalef(0.15f, 0.25f, 0.15f);
     glutSolidCube(1.0f);
     glPopMatrix();
     
-    // Queue - s'enroule quand assis
+    // Queue
     glColor3f(0.85f, 0.65f, 0.35f);
     glPushMatrix();
     glTranslatef(-1.3f, 0.1f - sitProgress * 0.3f, 0);
@@ -252,7 +248,7 @@ void Leopard::drawLeg(float swingDirection) {
     float angleKnee = 20.0f + sinf(animationPhase + 0.5f) * 10.0f;
 
     glRotatef(angleHip, 0, 0, 1);
-    // Cuisse - couleur léopard
+    // Cuisse
     glColor3f(0.9f, 0.7f, 0.4f);
     glPushMatrix();
     glScalef(0.3f, 1.2f, 0.3f);
@@ -263,7 +259,7 @@ void Leopard::drawLeg(float swingDirection) {
     glRotatef(-angleKnee, 0, 0, 1);
     glTranslatef(0, -0.6f, 0);
 
-    // Tibia - couleur légèrement plus foncée
+    // Tibia
     glColor3f(0.8f, 0.6f, 0.3f);
     glPushMatrix();
     glScalef(0.25f, 1.0f, 0.25f);
@@ -283,7 +279,7 @@ void Leopard::draw() {
     drawBody();
 
     if (sitProgress > 0.01f) {
-        // Pattes en position assise
+        // Pattes en position assis
         glPushMatrix();
         glTranslatef(0.8f, -0.3f + sitProgress * 0.1f, 0.5f);
         drawSittingLeg(1.0f, true);
@@ -304,7 +300,7 @@ void Leopard::draw() {
         drawSittingLeg(1.0f, false);
         glPopMatrix();
     } else {
-        // Pattes normales en mouvement
+        // Pattes normale en mouvement
         glPushMatrix();
         glTranslatef(0.8f, -0.3f, 0.5f);
         drawLeg(1.0f);
