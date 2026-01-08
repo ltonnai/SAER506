@@ -247,26 +247,136 @@ void Leopard::drawSittingLeg(float swingDirection, bool isFrontLeg) {
     }
 }
 
-void Leopard::drawLeg(float swingDirection) {
-    float angleHip = sinf(animationPhase) * legSwing * swingDirection;
-    float angleKnee = 20.0f + sinf(animationPhase + 0.5f) * 10.0f;
+void Leopard::drawFrontLeg(float phase) {
+    // Pattes avant - plus droites et fines, servent à diriger
+    float cyclePhase = sinf(phase);
 
-    glRotatef(angleHip, 0, 0, 1);
-    // Cuisse - couleur léopard
+    float hipAngle = cyclePhase * 25.0f;
+    float kneeAngle, ankleAngle;
+    float verticalLift;
+
+    if (cyclePhase > 0) {
+        kneeAngle = 15.0f + cyclePhase * 20.0f;
+        verticalLift = cyclePhase * 0.15f;
+    } else {
+        kneeAngle = 15.0f + fabsf(cyclePhase) * 5.0f;
+        verticalLift = 0.0f;
+    }
+    ankleAngle = -hipAngle * 0.3f + kneeAngle * 0.5f;
+
+    glTranslatef(0, verticalLift, 0);
+
+    // Épaule (petite articulation)
     glColor3f(0.9f, 0.7f, 0.4f);
     glPushMatrix();
-    glScalef(0.3f, 1.2f, 0.3f);
+    glutSolidSphere(0.12f, 8, 8);
+    glPopMatrix();
+
+    // Cuisse avant - fine et droite
+    glRotatef(hipAngle, 0, 0, 1);
+    glPushMatrix();
+    glTranslatef(0, -0.3f, 0);
+    glScalef(0.18f, 0.6f, 0.18f);
     glutSolidCube(1.0f);
     glPopMatrix();
 
+    // Genou avant
     glTranslatef(0, -0.6f, 0);
-    glRotatef(-angleKnee, 0, 0, 1);
-    glTranslatef(0, -0.6f, 0);
-
-    // Tibia - couleur légèrement plus foncée
-    glColor3f(0.8f, 0.6f, 0.3f);
     glPushMatrix();
-    glScalef(0.25f, 1.0f, 0.25f);
+    glutSolidSphere(0.1f, 8, 8);
+    glPopMatrix();
+
+    glRotatef(-kneeAngle, 0, 0, 1);
+
+    // Tibia avant - fin
+    glColor3f(0.85f, 0.65f, 0.35f);
+    glPushMatrix();
+    glTranslatef(0, -0.25f, 0);
+    glScalef(0.14f, 0.5f, 0.14f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+
+    // Cheville
+    glTranslatef(0, -0.5f, 0);
+    glRotatef(ankleAngle, 0, 0, 1);
+
+    // Pied avant - petit et arrondi
+    glColor3f(0.75f, 0.55f, 0.3f);
+    glPushMatrix();
+    glTranslatef(0.03f, -0.08f, 0);
+    glScalef(0.18f, 0.1f, 0.16f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+}
+
+void Leopard::drawBackLeg(float phase) {
+    // Pattes arrière - plus musclées, en forme de "Z", fournissent la propulsion
+    float cyclePhase = sinf(phase);
+
+    float hipAngle = cyclePhase * 35.0f - 20.0f;  // Angle de base vers l'arrière
+    float kneeAngle, ankleAngle;
+    float verticalLift;
+
+    if (cyclePhase < 0) {
+        // Phase de propulsion
+        kneeAngle = 45.0f - cyclePhase * 20.0f;
+        verticalLift = 0.0f;
+    } else {
+        // Patte levée
+        kneeAngle = 45.0f + cyclePhase * 40.0f;
+        verticalLift = cyclePhase * 0.2f;
+    }
+    ankleAngle = 30.0f - hipAngle * 0.5f + kneeAngle * 0.4f;
+
+    glTranslatef(0, verticalLift, 0);
+
+    // Hanche (articulation plus grosse que l'épaule)
+    glColor3f(0.9f, 0.7f, 0.4f);
+    glPushMatrix();
+    glutSolidSphere(0.18f, 10, 10);
+    glPopMatrix();
+
+    // Cuisse arrière - plus grosse et musclée
+    glRotatef(hipAngle, 0, 0, 1);
+    glPushMatrix();
+    glTranslatef(0, -0.35f, 0);
+    glScalef(0.3f, 0.7f, 0.28f);  // Plus large que les pattes avant
+    glutSolidCube(1.0f);
+    glPopMatrix();
+
+    // Genou arrière - plus gros
+    glTranslatef(0, -0.7f, 0);
+    glPushMatrix();
+    glutSolidSphere(0.14f, 10, 10);
+    glPopMatrix();
+
+    glRotatef(-kneeAngle, 0, 0, 1);
+
+    // Tibia arrière - plus long et incliné
+    glColor3f(0.85f, 0.65f, 0.35f);
+    glPushMatrix();
+    glTranslatef(0, -0.35f, 0);
+    glScalef(0.2f, 0.7f, 0.18f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+
+    // Tarse (partie du pied surélevée chez les félins)
+    glTranslatef(0, -0.7f, 0);
+    glRotatef(ankleAngle, 0, 0, 1);
+
+    glColor3f(0.8f, 0.6f, 0.32f);
+    glPushMatrix();
+    glTranslatef(0, -0.15f, 0);
+    glScalef(0.12f, 0.3f, 0.12f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+
+    // Pied arrière - plus grand que le pied avant
+    glTranslatef(0, -0.3f, 0);
+    glColor3f(0.75f, 0.55f, 0.3f);
+    glPushMatrix();
+    glTranslatef(0.05f, -0.06f, 0);
+    glScalef(0.22f, 0.1f, 0.2f);
     glutSolidCube(1.0f);
     glPopMatrix();
 }
@@ -280,49 +390,68 @@ void Leopard::draw() {
     float sitHeight = 0.8f - sitProgress * 0.35f;
     glTranslatef(0, sitHeight, 0);
 
+    // Léger balancement du corps pendant la marche
+    if (isMoving && sitProgress < 0.01f) {
+        float bodyBob = sinf(animationPhase * 2.0f) * 0.03f;
+        float bodyRoll = sinf(animationPhase) * 1.5f;
+        glTranslatef(0, bodyBob, 0);
+        glRotatef(bodyRoll, 1, 0, 0);
+    }
+
     drawBody();
 
     if (sitProgress > 0.01f) {
         // Pattes en position assise
         glPushMatrix();
-        glTranslatef(0.8f, -0.3f + sitProgress * 0.1f, 0.5f);
+        glTranslatef(0.7f, -0.3f + sitProgress * 0.1f, 0.45f);
         drawSittingLeg(1.0f, true);
         glPopMatrix();
 
         glPushMatrix();
-        glTranslatef(0.8f, -0.3f + sitProgress * 0.1f, -0.5f);
+        glTranslatef(0.7f, -0.3f + sitProgress * 0.1f, -0.45f);
         drawSittingLeg(-1.0f, true);
         glPopMatrix();
 
         glPushMatrix();
-        glTranslatef(-0.8f, -0.3f + sitProgress * 0.2f, 0.5f);
+        glTranslatef(-0.7f, -0.3f + sitProgress * 0.2f, 0.45f);
         drawSittingLeg(-1.0f, false);
         glPopMatrix();
 
         glPushMatrix();
-        glTranslatef(-0.8f, -0.3f + sitProgress * 0.2f, -0.5f);
+        glTranslatef(-0.7f, -0.3f + sitProgress * 0.2f, -0.45f);
         drawSittingLeg(1.0f, false);
         glPopMatrix();
     } else {
-        // Pattes normales en mouvement
+        // Animation de marche réaliste
+        // Pattes diagonales synchronisées (comme un vrai félin)
+        // Avant gauche + Arrière droite ensemble
+        // Avant droite + Arrière gauche ensemble
+
+        float phase1 = animationPhase;             // Pour avant gauche et arrière droite
+        float phase2 = animationPhase + 3.14159f;  // Pour avant droite et arrière gauche (opposé)
+
+        // Patte avant gauche
         glPushMatrix();
-        glTranslatef(0.8f, -0.3f, 0.5f);
-        drawLeg(1.0f);
+        glTranslatef(0.7f, -0.2f, -0.4f);
+        drawFrontLeg(phase1);
         glPopMatrix();
 
+        // Patte avant droite
         glPushMatrix();
-        glTranslatef(0.8f, -0.3f, -0.5f);
-        drawLeg(-1.0f);
+        glTranslatef(0.7f, -0.2f, 0.4f);
+        drawFrontLeg(phase2);
         glPopMatrix();
 
+        // Patte arrière droite (synchronisée avec avant gauche)
         glPushMatrix();
-        glTranslatef(-0.8f, -0.3f, 0.5f);
-        drawLeg(-1.0f);
+        glTranslatef(-0.7f, -0.15f, 0.4f);
+        drawBackLeg(phase1);
         glPopMatrix();
 
+        // Patte arrière gauche (synchronisée avec avant droite)
         glPushMatrix();
-        glTranslatef(-0.8f, -0.3f, -0.5f);
-        drawLeg(1.0f);
+        glTranslatef(-0.7f, -0.15f, -0.4f);
+        drawBackLeg(phase2);
         glPopMatrix();
     }
 

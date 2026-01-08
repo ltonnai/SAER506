@@ -34,7 +34,8 @@ private:
     bool isMoving;          // Si le léopard bouge actuellement
 
     void drawBody();
-    void drawLeg(float swingDirection);
+    void drawFrontLeg(float phase);      // Pattes avant - fines et droites
+    void drawBackLeg(float phase);       // Pattes arrière - musclées en "Z"
     void drawSittingLeg(float swingDirection, bool isFrontLeg);
 };
 
